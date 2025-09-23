@@ -15,6 +15,11 @@ void main() {
 	printf("Enter the radius of circle 2\n");
 	scanf_s("%lf", &r1);
 
+	if (r <= 0 || r1 <= 0) {
+		printf("The radius should not be negative or zero\n");
+		return 1;
+	}
+
 	double s = sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
 
 	if ((r + r1 < s) || (fabs(r - r1) > s)) {

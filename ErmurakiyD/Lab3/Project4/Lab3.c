@@ -5,6 +5,11 @@
 #include <string.h>
 #include <ctype.h>
 
+void ClearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 int InputLength(int num, int len) {
     if (num == 0) return len == 1 ? 1 : 0;
 
@@ -18,7 +23,7 @@ int InputLength(int num, int len) {
 
 int InputDiff(int num, int len) {
     int user_number[5];
-    int used[10] = { 0 }; 
+    int used[10] = { 0 };
 
     for (int i = len - 1; i >= 0; i--) {
         user_number[i] = num % 10;
@@ -42,6 +47,7 @@ int Digits(int len) {
     while (1) {
         if (fgets(input, sizeof(input), stdin) == NULL) {
             printf("Input error. Please try again: ");
+            ClearInputBuffer();
             continue;
         }
 
@@ -62,11 +68,13 @@ int Digits(int len) {
 
         if (!valid_input) {
             printf("Invalid input! Please enter only digits: ");
+            ClearInputBuffer(); 
             continue;
         }
 
         if (len > 1 && input[0] == '0') {
             printf("Invalid input! Number cannot start with 0: ");
+            ClearInputBuffer(); 
             continue;
         }
 
@@ -75,21 +83,25 @@ int Digits(int len) {
 
         if (*endptr != '\0') {
             printf("Conversion error. Please try again: ");
+            ClearInputBuffer(); 
             continue;
         }
 
         if (number < 0) {
             printf("Incorrect input!!! The number must be positive: ");
+            ClearInputBuffer(); 
             continue;
         }
 
         if (InputLength(number, len) == 0) {
             printf("Incorrect input!!! The number must have exactly %d digits: ", len);
+            ClearInputBuffer(); 
             continue;
         }
 
         if (InputDiff(number, len) == 0) {
             printf("Incorrect input!!! The number must not contain repeated digits: ");
+            ClearInputBuffer(); 
             continue;
         }
 
@@ -102,7 +114,7 @@ int main() {
 
     int number;
     int len;
-    int arr[5] = { 0 }; 
+    int arr[5] = { 0 };
     int bulls = 0;
     int cows = 0;
     int user_number[5];
@@ -114,6 +126,7 @@ int main() {
     while (1) {
         if (fgets(len_input, sizeof(len_input), stdin) == NULL) {
             printf("Input error. Please enter a number between 2 and 5: ");
+            ClearInputBuffer(); 
             continue;
         }
 
@@ -134,6 +147,7 @@ int main() {
 
         if (!valid_len) {
             printf("Invalid input! Please enter only digits (2-5): ");
+            ClearInputBuffer(); 
             continue;
         }
 
@@ -142,11 +156,13 @@ int main() {
 
         if (*endptr != '\0') {
             printf("Conversion error. Please enter a number between 2 and 5: ");
+            ClearInputBuffer(); 
             continue;
         }
 
         if (len > 5 || len < 2) {
             printf("Incorrect input! Please enter a number between 2 and 5: ");
+            ClearInputBuffer(); 
             continue;
         }
 
@@ -157,7 +173,7 @@ int main() {
     int digit;
 
     do {
-        digit = rand() % 9 + 1; 
+        digit = rand() % 9 + 1;
     } while (used_digits[digit]);
 
     arr[0] = digit;
@@ -165,7 +181,7 @@ int main() {
 
     for (int i = 1; i < len; i++) {
         do {
-            digit = rand() % 10; 
+            digit = rand() % 10;
         } while (used_digits[digit]);
 
         arr[i] = digit;

@@ -2,58 +2,98 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>  
+#include <string.h>
+#include <ctype.h>
 
 int InputLength(int num, int len) {
+    if (num == 0) return len == 1 ? 1 : 0;
+
     int i = 0;
     while (num != 0) {
         num /= 10;
         i += 1;
     }
-    if (i == len) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+    return i == len ? 1 : 0;
 }
 
 int InputDiff(int num, int len) {
     int user_number[5];
+    int used[10] = { 0 }; 
+
     for (int i = len - 1; i >= 0; i--) {
         user_number[i] = num % 10;
         num /= 10;
-    }
-    for (int i = 0; i < len - 1; i++) {
-        int j = i + 1;
-        while (j < len) {
-            if (user_number[j] == user_number[i]) {
-                return 0;
-            }
-            j++;
+
+        if (used[user_number[i]]) {
+            return 0;
         }
+        used[user_number[i]] = 1;
     }
     return 1;
 }
 
 int Digits(int len) {
+    char input[20];
     int number;
-    int c;
-    printf("Try to guess the number the size %d(without repeatings): ", len);
+    int valid_input;
+
+    printf("Try to guess the number of size %d (without repeating digits): ", len);
+
     while (1) {
-        while ((c = getchar()) != '\n') {}
-        scanf("%d", &number);
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("Input error. Please try again: ");
+            continue;
+        }
+
+        input[strcspn(input, "\n")] = 0;
+
+        if (strlen(input) == 0) {
+            printf("Empty input! Please enter a number: ");
+            continue;
+        }
+
+        valid_input = 1;
+        for (int i = 0; input[i] != '\0'; i++) {
+            if (!isdigit((unsigned char)input[i])) {
+                valid_input = 0;
+                break;
+            }
+        }
+
+        if (!valid_input) {
+            printf("Invalid input! Please enter only digits: ");
+            continue;
+        }
+
+        if (len > 1 && input[0] == '0') {
+            printf("Invalid input! Number cannot start with 0: ");
+            continue;
+        }
+
+        char* endptr;
+        number = (int)strtol(input, &endptr, 10);
+
+        if (*endptr != '\0') {
+            printf("Conversion error. Please try again: ");
+            continue;
+        }
+
         if (number < 0) {
-            printf("Incorrect input!!! The number must be positive\n");
+            printf("Incorrect input!!! The number must be positive: ");
+            continue;
         }
-        else if (InputLength(number, len) == 0) {
-            printf("Incorrect input!!! The length must be between 2 and 5\n", len);
+
+        if (InputLength(number, len) == 0) {
+            printf("Incorrect input!!! The number must have exactly %d digits: ", len);
+            continue;
         }
-        else if (InputDiff(number, len) == 0) {
-            printf("Incorrect input!!! The number must not contain repeated digits.\n");
+
+        if (InputDiff(number, len) == 0) {
+            printf("Incorrect input!!! The number must not contain repeated digits: ");
+            continue;
         }
-        else {
-            return number;
-        }
+
+        return number;
     }
 }
 
@@ -62,29 +102,74 @@ int main() {
 
     int number;
     int len;
-    int arr[5];
+    int arr[5] = { 0 }; 
     int bulls = 0;
     int cows = 0;
     int user_number[5];
-    int c;
+    char len_input[20];
+    int valid_len;
 
-    printf("Enter the length of the number(2-5): ");
-    scanf("%d", &len);
+    printf("Enter the length of the number (2-5): ");
 
-    while (len > 5 || len < 2) {
-        printf("Incorrect input! Please try again.\n");
-        while ((c = getchar()) != '\n') {}
-        scanf("%d", &len);
+    while (1) {
+        if (fgets(len_input, sizeof(len_input), stdin) == NULL) {
+            printf("Input error. Please enter a number between 2 and 5: ");
+            continue;
+        }
+
+        len_input[strcspn(len_input, "\n")] = 0;
+
+        if (strlen(len_input) == 0) {
+            printf("Empty input! Please enter a number between 2 and 5: ");
+            continue;
+        }
+
+        valid_len = 1;
+        for (int i = 0; len_input[i] != '\0'; i++) {
+            if (!isdigit((unsigned char)len_input[i])) {
+                valid_len = 0;
+                break;
+            }
+        }
+
+        if (!valid_len) {
+            printf("Invalid input! Please enter only digits (2-5): ");
+            continue;
+        }
+
+        char* endptr;
+        len = (int)strtol(len_input, &endptr, 10);
+
+        if (*endptr != '\0') {
+            printf("Conversion error. Please enter a number between 2 and 5: ");
+            continue;
+        }
+
+        if (len > 5 || len < 2) {
+            printf("Incorrect input! Please enter a number between 2 and 5: ");
+            continue;
+        }
+
+        break;
     }
 
-    char t;
-    char i = 0;
-    char num[10] = { 0 };
+    char used_digits[10] = { 0 };
+    int digit;
 
-    while (i < len) {
-        if (num[t = rand() % 10] == 0 && (t > 0 || i > 0)) {
-            num[arr[i++] = t] += 1;
-        }
+    do {
+        digit = rand() % 9 + 1; 
+    } while (used_digits[digit]);
+
+    arr[0] = digit;
+    used_digits[digit] = 1;
+
+    for (int i = 1; i < len; i++) {
+        do {
+            digit = rand() % 10; 
+        } while (used_digits[digit]);
+
+        arr[i] = digit;
+        used_digits[digit] = 1;
     }
 
     while (bulls != len) {
@@ -107,7 +192,7 @@ int main() {
         int guess_count[10] = { 0 };
 
         for (int i = 0; i < len; i++) {
-            if (user_number[i] != arr[i]) {  
+            if (user_number[i] != arr[i]) {
                 secret_count[arr[i]]++;
                 guess_count[user_number[i]]++;
             }
@@ -119,11 +204,15 @@ int main() {
             }
         }
 
-        
         printf("Number of cows = %d, number of bulls = %d.\n", cows, bulls);
 
         if (bulls == len) {
-            printf("Congratulations You win!!!\n");
+            printf("Congratulations! You win!!!\n");
+            printf("The secret number was: ");
+            for (int i = 0; i < len; i++) {
+                printf("%d", arr[i]);
+            }
+            printf("\n");
         }
     }
 

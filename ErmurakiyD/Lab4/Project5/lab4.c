@@ -199,44 +199,61 @@ void gen_fin() {
 		printf("Check is empty\n");
 		return;
 	}
+
 	int total = 0;
 	int total_dis = 0;
+
 	for (int i = 0; i < current_check.item_count; i++) {
-		printf("%s:  price:%d  quantity:%d  discount:%d rub  total:%d\n",
-			current_check.item[i].prod.name, current_check.item[i].prod.price,
-			current_check.item[i].quantity, current_check.item[i].prod.discount,
-			current_check.item[i].total_discount, current_check.item[i].quantity
-			* current_check.item[i].prod.price - current_check.item[i].total_discount);
-		total += current_check.item[i].quantity * current_check.item[i].prod.price;
+		int item_total = current_check.item[i].quantity * current_check.item[i].prod.price;
+		int item_final = item_total - current_check.item[i].total_discount;
+
+		printf("%s:  Price:%d rub  Quantity:%d  Discount:%d rub  Total:%d rub\n",
+			current_check.item[i].prod.name,
+			current_check.item[i].prod.price,
+			current_check.item[i].quantity,
+			current_check.item[i].total_discount,
+			item_final);
+
+		total += item_total;
 		total_dis += current_check.item[i].total_discount;
 	}
-	printf("-------------------\n");
-	printf("Total: %d rub\n", total);
-	printf("Total discount: %d rub\n", total_dis);
-	printf("Final amount: %d rub\n", total - total_dis);
 
-	int c = 0;
-	printf("Select an action:\n");
-	printf("0 - Finish work\n");
-	printf("1 - Start a new check\n");
-	printf("Your choice:");
-	scanf("%d", &c);
+	current_check.total_cost = total;
+	current_check.total_discount = total_dis;
+	current_check.final_amount = total - total_dis;
+
+	printf("-------------------\n");
+	printf("Total: %d rub\n", current_check.total_cost);
+	printf("Total discount: %d rub\n", current_check.total_discount);
+	printf("Final amount: %d rub\n", current_check.final_amount);
+	printf("-------------------\n");
+
+	int c;
 	do {
+		printf("Select an action:\n");
+		printf("0 - Finish work\n");
+		printf("1 - Start a new check\n");
+		printf("Your choice: ");
+		if (scanf("%d", &c) != 1) {
+			printf("Invalid input!\n");
+			while (getchar() != '\n');
+			continue;
+		}
+		while (getchar() != '\n');
+
 		if (c == 1) {
-			printf("Start a new check\n");
+			printf("Starting a new check...\n\n");
 			init_check();
 			break;
 		}
 		else if (c == 0) {
-			printf("The end\n");
+			printf("Exiting program...\n");
 			break;
 		}
 		else {
-			printf("Incorrect operation selection!\n");
-			break;
+			printf("Incorrect operation selection! Try again.\n");
 		}
 	} while (1);
-
 }
 
 void menu() {

@@ -1,0 +1,16 @@
+Ivan 25
+Svetlana 56
+Olga 29
+Dmitry 45
+Nikolay 58
+Sergey 38
+Elena 27
+Larisa 47
+Natalia 34
+Igor 41
+Tatyana 19
+Vladimir 63
+Yuri 72
+Mikhail 29
+Andrey 33
+

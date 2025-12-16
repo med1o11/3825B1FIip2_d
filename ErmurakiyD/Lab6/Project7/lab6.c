@@ -1,27 +1,36 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define pi 3.1415926535897932
+#define pi 3.14159265358979323846L  
 #include <stdio.h>
 #include <math.h>
 
-long double norm_x(long double x) {
-    return fmodl(fabsl(x), 2 * pi);
+long double reduce_angle(long double x) {
+    x = fmodl(x, 2.0L * pi);
+
+    if (x > pi) {
+        x -= 2.0L * pi;
+    }
+    else if (x < -pi) {
+        x += 2.0L * pi;
+    }
+
+    return x;
 }
 
 long double lf_sin(long double eps, size_t n, long double x, size_t* i_count) {
     long double res = 0;
-    long double term = norm_x(x);
-    long double x_squared = norm_x(x) * norm_x(x);
+    long double reduced_x = reduce_angle(x);
+    long double term = reduced_x;
+    long double x_squared = reduced_x * reduced_x;
     short int sign = 1;
     *i_count = 0;
+
     for (size_t i = 0; i < n; ++i) {
         res += sign * term;
         (*i_count)++;
         if (fabsl(term) < eps) {
             break;
         }
-        term /= (2 * i + 2);
-        term /= (2 * i + 3);
-        term *= x_squared;
+        term = term * x_squared / ((2.0L * i + 2.0L) * (2.0L * i + 3.0L));
         sign *= -1;
     }
     return res;
@@ -29,19 +38,19 @@ long double lf_sin(long double eps, size_t n, long double x, size_t* i_count) {
 
 long double lf_cos(long double eps, size_t n, long double x, size_t* i_count) {
     long double res = 0;
-    long double term = 1;
-    long double x_squared = norm_x(x) * norm_x(x);
+    long double reduced_x = reduce_angle(x);
+    long double term = 1.0L;
+    long double x_squared = reduced_x * reduced_x;
     short int sign = 1;
     *i_count = 0;
+
     for (size_t i = 0; i < n; ++i) {
         res += sign * term;
         (*i_count)++;
         if (fabsl(term) < eps) {
             break;
         }
-        term /= (2 * i + 1);
-        term /= (2 * i + 2);
-        term *= x_squared;
+        term = term * x_squared / ((2.0L * i + 1.0L) * (2.0L * i + 2.0L));
         sign *= -1;
     }
     return res;
@@ -68,7 +77,7 @@ long double lf_arctg(long double eps, size_t n, long double x, size_t* i_count) 
         long double sign = (x > 0) ? 1.0L : -1.0L;
         x = 1.0L / x;
         long double res = lf_arctg(eps, n, x, i_count);
-        return sign * (pi / 2 - res);
+        return sign * (pi / 2.0L - res);
     }
 
     long double res = 0;
@@ -83,9 +92,9 @@ long double lf_arctg(long double eps, size_t n, long double x, size_t* i_count) 
         if (fabsl(term) < eps) {
             break;
         }
-        term *= x_squared;  
-        sign *= -1;         
-        term /= (2 * i + 3); 
+        term *= x_squared;
+        sign *= -1;
+        term /= (2 * i + 3);
     }
     return res;
 }
@@ -104,6 +113,8 @@ long double (*lf_func(int choice))(long double, size_t, long double, size_t*) {
     case 4:
         return lf_arctg;
         break;
+    default:
+        return NULL;
     }
 }
 
@@ -121,6 +132,8 @@ long double (*standard_func(int choice))(long double) {
     case 4:
         return atanl;
         break;
+    default:
+        return NULL;
     }
 }
 
@@ -150,8 +163,14 @@ int main() {
     int choice = select_function();
     size_t i = 0;
     size_t* i_count = &i;
+
     long double(*fnc)(long double) = standard_func(choice);
     long double(*lf_fnc)(long double, size_t, long double, size_t*) = lf_func(choice);
+
+    if (fnc == NULL || lf_fnc == NULL) {
+        printf("Error: Invalid function selection.\n");
+        return 1;
+    }
 
     switch (mode) {
     case 1: {
@@ -179,10 +198,13 @@ int main() {
             while ((c = getchar()) != '\n') {}
         }
 
-        printf("Math.h function: %Lf\n", fnc(x));
-        printf("My function: %Lf\n", lf_fnc(eps, n, x, i_count));
-        printf("Difference: %Lf\n", fabsl(lf_fnc(eps, n, x, i_count) - fnc(x)));
-        printf("Deg. of Taylor series: %zu\n", i);
+        long double my_result = lf_fnc(eps, n, x, i_count);
+        long double std_result = fnc(x);
+
+        printf("Math.h function: %Lf\n", std_result);
+        printf("My function: %Lf\n", my_result);
+        printf("Difference: %Le\n", fabsl(my_result - std_result));
+        printf("Deg. of Taylor series: %zu\n", *i_count);
         break;
     }
 
@@ -203,12 +225,17 @@ int main() {
             while ((c = getchar()) != '\n') {}
         }
 
+        long double std_result = fnc(x);
+        printf("Math.h function: %Lf\n\n", std_result);
+
         for (size_t n = 1; n < nmax + 1; ++n) {
-            printf("Math.h function: %Lf\n", fnc(x));
-            printf("Deg. of Taylor series: %zu\tMy function: %Lf\tDifference: %Lf\n\n",
-                n, lf_fnc(0, n, x, i_count), fabsl(lf_fnc(0, n, x, i_count) - fnc(x)));
+            long double my_result = lf_fnc(0.0L, n, x, i_count);
+            printf("Deg. of Taylor series: %zu\tMy function: %Lf\tDifference: %Le\n",
+                n, my_result, fabsl(my_result - std_result));
         }
         break;
     }
     }
+
+    return 0;
 }
